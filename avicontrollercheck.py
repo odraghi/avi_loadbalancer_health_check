@@ -13,8 +13,7 @@ import argparse
 
 def _create_session(avi_vip, avi_user, avi_passwd):
 
-
-        print(f"+Creating a session to AVI Controller {avi_vip}\n")
+        print(f"+Creating a session to NSX-ALB Controller {avi_vip}\n")
         avi_uri = f"https://{avi_vip}/login"
         try:
                 requests.packages.urllib3.disable_warnings()
@@ -23,7 +22,7 @@ def _create_session(avi_vip, avi_user, avi_passwd):
                 return login
 
         except Exception as api_excep:
-            print("!!!!Exception Occurred while trying to create a session to AVI controlelr!!!")
+            print("!!!!Exception Occurred while trying to create a session to NSX-ALB controlelr!!!")
             print(api_excep)
 
 def _check_configs(avic, avi_vip):
@@ -38,7 +37,7 @@ def _check_configs(avic, avi_vip):
                 avi_uri3 = f"https://{avi_vip}/api/cloud"
 
 
-                print("+++++++++Checking AVI cluster config parameters++++++++")
+                print("+++++++++Checking NSX-ALB cluster config parameters++++++++")
 
                 print(f"+Retrieving configs via API call {avi_uri0}")
                 resp0 = requests.get(avi_uri0, verify=False, cookies=dict(sessionid= avic.cookies['sessionid']))
@@ -88,7 +87,7 @@ def _check_configs(avic, avi_vip):
 
 
         except Exception as api_excep:
-            print("!!!!Exception Occurred while getting configs from AVI API!!!")
+            print("!!!!Exception Occurred while getting configs from NSX-ALB API!!!")
             print(api_excep)
 
 def _check_cluster_health(avic, avi_vip):
@@ -100,7 +99,7 @@ def _check_cluster_health(avic, avi_vip):
                 resp = requests.get(avi_uri, verify=False, cookies=dict(sessionid= avic.cookies['sessionid']))
                 resp_text = json.loads(resp.text)['cluster_state']
                 resp2_text = json.loads(resp.text)['node_states']
-                print("+++++++++Checking AVI cluster Status++++++++++")
+                print("+++++++++Checking NSX-ALB cluster Status++++++++++")
                 print(f"+Retrieving cluster health via API call {avi_uri}")
                 print(f"Current Cluster Status  : {resp_text['state']}")
                 print(f"Cluster is up since     : {resp_text['up_since']}")
@@ -130,7 +129,7 @@ def _check_tenant_configs(avic, avi_vip):
                 avi_uri0 = f"https://{avi_vip}/api/tenant"
 
                 print
-                print("+++++++++Checking AVI Tenant configs++++++++")
+                print("+++++++++Checking NSX-ALB Tenant configs++++++++")
                 print
 
                 print(f"+Retrieving configs via API call {avi_uri0}")
@@ -265,7 +264,7 @@ def _check_tenant_configs(avic, avi_vip):
 
 
         except Exception as api_excep:
-            print("!!!!Exception Occurred while getting configs from AVI API!!!")
+            print("!!!!Exception Occurred while getting configs from NSX-ALB API!!!")
             print(api_excep)
 
 
@@ -274,10 +273,10 @@ if __name__=='__main__':
 
 
     parser = argparse.ArgumentParser(
-        description='AVI Cluster check Tool')
-    parser.add_argument('-i', '--ip', required=True, help="AVI Controller VIP IP")
-    parser.add_argument('-u', '--user', required=True, help="AVI Controller VIP User")
-    parser.add_argument('-p', '--passwd', required=True, help="AVI Controller VIP Password")
+        description='NSX-ALB Cluster check Tool')
+    parser.add_argument('-i', '--ip', required=True, help="NSX-ALB Controller VIP IP")
+    parser.add_argument('-u', '--user', required=True, help="NSX-ALB Controller VIP User")
+    parser.add_argument('-p', '--passwd', required=True, help="NSX-ALB Controller VIP Password")
     parser.add_argument('-o', '--option', choices=('health', 'cluster_configs', 'tenant_configs'), required=True, help="Various configs checks")
 
     args = parser.parse_args()
@@ -288,19 +287,19 @@ if __name__=='__main__':
 
 
     if args.option == 'health':
-        print("++++++ Checking AVI cluster Health +++++++\n")
+        print("++++++ Checking NSX-ALB cluster Health +++++++\n")
         login_session = _create_session(avi_controller_vip, avi_user, avi_controller_passwd)
         _check_cluster_health(login_session, avi_controller_vip)
         login_session.close()
 
     elif args.option == 'cluster_configs':
-        print("++++++ Checking AVI cluster config parameters ++++++\n")
+        print("++++++ Checking NSX-ALB cluster config parameters ++++++\n")
         login_session = _create_session(avi_controller_vip, avi_user, avi_controller_passwd)
         _check_configs(login_session, avi_controller_vip)
         login_session.close()
 
     elif args.option == 'tenant_configs':
-        print("++++++ Checking AVI cluster config parameters ++++++\n")
+        print("++++++ Checking NSX-ALB cluster config parameters ++++++\n")
         login_session = _create_session(avi_controller_vip, avi_user, avi_controller_passwd)
         _check_tenant_configs(login_session, avi_controller_vip)
         login_session.close()

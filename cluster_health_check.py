@@ -15,7 +15,7 @@ import argparse
 def _create_session(avi_vip, avi_user, avi_passwd):
 
 
-        print(f"+Creating a session to AVI Controller {avi_vip}\n")
+        print(f"+Creating a session to NSX-ALB Controller {avi_vip}\n")
         avi_uri = f"https://{avi_vip}/login"
         try:
                 requests.packages.urllib3.disable_warnings()
@@ -24,7 +24,7 @@ def _create_session(avi_vip, avi_user, avi_passwd):
                 return login
 
         except Exception as api_excep:
-            print("!!!!Exception Occurred while trying to create a session to AVI controlelr!!!")
+            print("!!!!Exception Occurred while trying to create a session to NSX-ALB controlelr!!!")
             print(api_excep)
 
 
@@ -40,7 +40,7 @@ def _check_cluster_health(avic, avi_vip):
                 resp_text = json.loads(resp.text)['cluster_state']
                 resp2_text = json.loads(resp.text)['node_states']
 
-                print("+++++++++Checking AVI cluster Status++++++++++")
+                print("+++++++++Checking NSX-ALB cluster Status++++++++++")
                 print(f"+Retrieving cluster health via API call {avi_uri}")
                 print(f"Current Cluster Status  : {resp_text['state']}")
                 print(f"Cluster is up since     : {resp_text['up_since']}")
@@ -73,13 +73,13 @@ if __name__=='__main__':
 
 
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    print("+++++++++Checking AVI Controller cluster+++++++++++++++++++")
+    print("+++++++++Checking NSX-ALB Controller cluster+++++++++++++++")
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 
 
-    parser = argparse.ArgumentParser(description='Script to check AVI cluster health')
-    parser.add_argument('-i','--ip', help='AVI controller VIP IP',required=True)
+    parser = argparse.ArgumentParser(description='Script to check NSX-ALB cluster health')
+    parser.add_argument('-i','--ip', help='NSX-ALB controller VIP IP',required=True)
     parser.add_argument('-u','--user',help='Controller admin user', required=True)
     parser.add_argument('-p','--passwd',help='Controller admin password', required=True)
     args = parser.parse_args()
