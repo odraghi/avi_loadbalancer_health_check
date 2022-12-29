@@ -3,6 +3,7 @@
 __author__ = 'shu2003'
 
 from opcode import hasconst
+from posixpath import split
 from re import I
 import requests
 import json
@@ -267,6 +268,61 @@ def _check_tenant_configs(avic, avi_vip):
             print("!!!!Exception Occurred while getting configs from NSX-ALB API!!!")
             print(api_excep)
 
+def _check_se_group(avic, avi_vip, group_name):
+
+        try:
+                avi_uri = f"https://{avi_vip}/api/serviceenginegroup-inventory/?page_size=200&include=config,upgradestatus&include_name=true"
+
+                if group_name:
+                    avi_uri += f"&name={group_name}"
+                
+                resp = requests.get(avi_uri, verify=False, cookies=dict(sessionid= avic.cookies['sessionid']))
+                # print(resp.text)
+                results = json.loads(resp.text)['results']
+                for result in results:
+                    cloud=result['config']['cloud_ref'].split("#")[1]
+                    print(f"+++++++++Checking NSX-ALB Service Engine Group: {cloud}/{result['config']['name']}++++++++++")
+                    print(f"+Name                              : {result['config']['name']}")
+                    print(f"+Version                           : {result['upgradestatus']['version']}")
+                    print(f"+License Tier                      : {result['config']['license_tier']}")
+                    print(f"+License Type                      : {result['config']['license_type']}")
+                    print(f"+Upgrade state                     : {result['upgradestatus']['state']['state']}")
+                    print(f"+HA Mode                           : {result['config']['ha_mode']}")
+                    print(f"+Virtual Service per SE Max        : {result['config']['max_vs_per_se']}")
+                    print(f"+Virtual Services Current          : {len(result['virtualservices'])}")
+                    print(f"+Service Engines Deprovision Delay : {result['config']['se_deprovision_delay']}")
+                    print(f"+Service Engines Min               : {result['config']['min_se']}")
+                    print(f"+Service Engines Max               : {result['config']['max_se']}")
+                    print(f"+Service Engines Current           : {len(result['serviceengines'])}")
+                    if len(result['serviceengines']):
+                        print(f"+++++++++Checking NSX-ALB Service Engines in Group: {cloud}/{result['config']['name']}++++++++++")
+                        for se_long_href in result['serviceengines']:
+                            se_href=se_long_href.split("#")[0]
+                            se_href+="?join_subresources=runtime"
+                            resp = requests.get(se_href, verify=False, cookies=dict(sessionid= avic.cookies['sessionid']))
+                            service_engine = json.loads(resp.text)
+                            print(f"+++++++++Checking NSX-ALB Service Engines {service_engine['name']}++++++++++")
+                            print(f"+Name                  : {service_engine['name']}")
+                            print(f"+Version               : {service_engine['runtime']['version']}")
+                            print(f"+Enable State          : {service_engine['enable_state']}")
+                            print(f"+License State         : {service_engine['license_state']}")
+                            print(f"+Sate                  : {service_engine['runtime']['oper_status']['state']}")
+                            print(f"+Power Sate            : {service_engine['runtime']['power_state']}")
+                            print(f"+Connected             : {service_engine['runtime']['se_connected']}")
+                            print(f"+VInfra Discovered     : {service_engine['runtime']['vinfra_discovered']}")
+                            print(f"+Gateway UP            : {service_engine['runtime']['gateway_up']}")
+                            print(f"+Sufficient Memory     : {service_engine['runtime']['sufficient_memory']}")
+                            print(f"+Reboot Pending        : {service_engine['runtime']['se_grp_reboot_pending']}")
+                            print(f"+vSphere HA            : {service_engine['vsphere_ha_enabled']}")
+
+                print()
+
+                avic.close()
+
+
+        except Exception as api_excep:
+            print("!!!!Exception Occurred while getting configs from serviceenginegroup-inventory!!!")
+            print(api_excep)
 
 if __name__=='__main__':
 
@@ -277,7 +333,8 @@ if __name__=='__main__':
     parser.add_argument('-i', '--ip', required=True, help="NSX-ALB Controller VIP IP")
     parser.add_argument('-u', '--user', required=True, help="NSX-ALB Controller VIP User")
     parser.add_argument('-p', '--passwd', required=True, help="NSX-ALB Controller VIP Password")
-    parser.add_argument('-o', '--option', choices=('health', 'cluster_configs', 'tenant_configs'), required=True, help="Various configs checks")
+    parser.add_argument('-o', '--option', choices=('health', 'cluster_configs', 'tenant_configs', 'se_group'), required=True, help="Various configs checks")
+    parser.add_argument('-n', '--name', required=False, help="Optional Name for check like --option se_group")
 
     args = parser.parse_args()
 
@@ -302,5 +359,11 @@ if __name__=='__main__':
         print("++++++ Checking NSX-ALB cluster config parameters ++++++\n")
         login_session = _create_session(avi_controller_vip, avi_user, avi_controller_passwd)
         _check_tenant_configs(login_session, avi_controller_vip)
+        login_session.close()
+
+    elif args.option == 'se_group':
+        print("++++++ Checking NSX-ALB service engine group  ++++++\n")
+        login_session = _create_session(avi_controller_vip, avi_user, avi_controller_passwd)
+        _check_se_group(login_session, avi_controller_vip, args.name)
         login_session.close()
 
