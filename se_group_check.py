@@ -119,7 +119,7 @@ debug_mode=False
 
 if __name__=='__main__':
 
-    parser = argparse.ArgumentParser(description='Script to check NSX-ALB cluster health')
+    parser = argparse.ArgumentParser(description='Script to check NSX-ALB service engine group')
     parser.add_argument('-i','--ip', help='NSX-ALB controller VIP IP',required=True)
     parser.add_argument('-u','--user',help='Controller admin user', required=True)
     parser.add_argument('-p','--passwd',help='Controller admin password', required=True)
